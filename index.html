@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Prescription Generator - Enterprise Edition</title>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg: #F9FAFB;
+      --surface: #FFFFFF;
+      --border: #E5E7EB;
+      --text: #111827;
+      --text-secondary: #6B7280;
+      --danger: #EF4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .main-content {
+      padding: 2rem;
+      min-height: calc(100vh - 80px);
+    }
+
+    .content-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+      overflow: hidden;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      box-shadow: 0 10px 15px rgba(0,0,0,0.15);
+    }
+
+    .card-header {
+      padding: 1.5rem 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.2);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .card-body {
+      padding: 2rem;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+
+    input, select, textarea {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s;
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+
+    textarea {
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .btn-primary, .btn-secondary, .btn-danger {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg);
+      border-color: var(--text-secondary);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      font-size: 0.875rem;
+      padding: 0.5rem 1rem;
+    }
+
+    .btn-danger:hover {
+      background: #DC2626;
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--surface);
+      border-radius: 12px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 10;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      color: var(--text-secondary);
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: var(--text);
+    }
+
+    .modal-body {
+      padding: 2rem;
+    }
+
+    .modal-footer {
+      padding: 1.5rem 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      position: sticky;
+      bottom: 0;
+      background: var(--surface);
+    }
+
+    .medication-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .medication-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .medication-number {
+      background: var(--primary);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+
+    .prescription-header {
+      text-align: center;
+      border-bottom: 2px solid var(--text);
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .prescription-header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .prescription-section {
+      margin-bottom: 2rem;
+    }
+
+    .prescription-section h3 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .info-item {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .prescription-footer {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      text-align: right;
+    }
+
+    .signature-line {
+      margin-top: 3rem;
+      border-top: 1px solid var(--text);
+      width: 200px;
+      margin-left: auto;
+      padding-top: 0.5rem;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 1rem;
+      }
+      
+      .logo h1 {
+        font-size: 1.25rem;
+      }
+      
+      .main-content {
+        padding: 1rem;
+      }
+      
+      .card-body {
+        padding: 1.5rem;
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      .header, .modal-header, .modal-footer {
+        display: none;
+      }
+      
+      .modal-content {
+        box-shadow: none;
+        max-height: none;
+      }
+      
+      body {
+        background: white;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+            <path d="M20 10v20M10 20h20" stroke="white" stroke-width="3" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40">
+                <stop offset="0%" stop-color="#667eea"/>
+                <stop offset="100%" stop-color="#764ba2"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <h1>AI Prescription Generator</h1>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="content-wrapper">
+        <section class="card">
+          <div class="card-header">
+            <h2>Patient Information</h2>
+            <span class="badge">Step 1</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="patientName">Patient Name *</label>
+                <input type="text" id="patientName" placeholder="Enter full name" required>
+              </div>
+              <div class="form-group">
+                <label for="patientAge">Age *</label>
+                <input type="number" id="patientAge" placeholder="Age" min="0" max="150" required>
+              </div>
+              <div class="form-group">
+                <label for="patientGender">Gender *</label>
+                <select id="patientGender" required>
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="patientWeight">Weight (kg)</label>
+                <input type="number" id="patientWeight" placeholder="Weight" step="0.1">
+              </div>
+              <div class="form-group">
+                <label for="patientHeight">Height (cm)</label>
+                <input type="number" id="patientHeight" placeholder="Height" step="0.1">
+              </div>
+              <div class="form-group">
+                <label for="patientContact">Contact Number</label>
+                <input type="tel" id="patientContact" placeholder="+1 234 567 8900">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>Medical Assessment</h2>
+            <span class="badge">Step 2</span>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label for="chiefComplaint">Chief Complaint *</label>
+                <textarea id="chiefComplaint" rows="3" placeholder="Describe the main symptoms or reason for visit" required></textarea>
+              </div>
+              <div class="form-group">
+                <label for="bloodPressure">Blood Pressure</label>
+                <input type="text" id="bloodPressure" placeholder="120/80 mmHg">
+              </div>
+              <div class="form-group">
+                <label for="temperature">Temperature (°F)</label>
+                <input type="number" id="temperature" placeholder="98.6" step="0.1">
+              </div>
+              <div class="form-group full-width">
+                <label for="medicalHistory">Medical History</label>
+                <textarea id="medicalHistory" rows="3" placeholder="Previous conditions, surgeries, chronic diseases"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label for="allergies">Allergies</label>
+                <textarea id="allergies" rows="2" placeholder="List any known allergies"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label for="diagnosis">Diagnosis *</label>
+                <textarea id="diagnosis" rows="3" placeholder="Enter diagnosis" required></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h2>Prescription</h2>
+            <span class="badge">Step 3</span>
+          </div>
+          <div class="card-body">
+            <div id="medicationList"></div>
+            <button class="btn-secondary" id="addMedicationBtn">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
+              </svg>
+              Add Medication
+            </button>
+            
+            <div class="form-group" style="margin-top: 1.5rem;">
+              <label for="additionalInstructions">Additional Instructions</label>
+              <textarea id="additionalInstructions" rows="3" placeholder="Special instructions, follow-up appointments, lifestyle recommendations"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <div class="action-buttons">
+          <button class="btn-secondary" id="clearBtn" style="width: auto;">Clear Form</button>
+          <button class="btn-primary" id="generatePrescriptionBtn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z" clip-rule="evenodd"/>
+            </svg>
+            Generate Prescription
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <div class="modal" id="prescriptionModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Prescription Preview</h2>
+          <button class="close-btn" id="closeModalBtn">&times;</button>
+        </div>
+        <div class="modal-body" id="prescriptionContent"></div>
+        <div class="modal-footer">
+          <button class="btn-secondary" id="downloadPdfBtn" style="width: auto;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+            Download PDF
+          </button>
+          <button class="btn-primary" id="printBtn">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd"/>
+            </svg>
+            Print
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let medications = [];
+
+    const medicationList = document.getElementById('medicationList');
+    const addMedicationBtn = document.getElementById('addMedicationBtn');
+    const generatePrescriptionBtn = document.getElementById('generatePrescriptionBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const prescriptionModal = document.getElementById('prescriptionModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const printBtn = document.getElementById('printBtn');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+
+    function addMedication() {
+      medications.push({
+        name: '',
+        dosage: '',
+        frequency: '',
+        duration: '',
+        instructions: ''
+      });
+      renderMedications();
+    }
+
+    function removeMedication(index) {
+      medications.splice(index, 1);
+      renderMedications();
+    }
+
+    function renderMedications() {
+      medicationList.innerHTML = medications.map((med, index) => `
+        <div class="medication-item">
+          <div class="medication-header">
+            <div class="medication-number">${index + 1}</div>
+            <button class="btn-danger" onclick="removeMedication(${index})">Remove</button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Medication Name *</label>
+              <input type="text" class="med-name" data-index="${index}" value="${med.name}" placeholder="e.g., Amoxicillin">
+            </div>
+            <div class="form-group">
+              <label>Dosage *</label>
+              <input type="text" class="med-dosage" data-index="${index}" value="${med.dosage}" placeholder="e.g., 500mg">
+            </div>
+            <div class="form-group">
+              <label>Frequency *</label>
+              <input type="text" class="med-frequency" data-index="${index}" value="${med.frequency}" placeholder="e.g., 3 times daily">
+            </div>
+            <div class="form-group">
+              <label>Duration *</label>
+              <input type="text" class="med-duration" data-index="${index}" value="${med.duration}" placeholder="e.g., 7 days">
+            </div>
+            <div class="form-group full-width">
+              <label>Special Instructions</label>
+              <input type="text" class="med-instructions" data-index="${index}" value="${med.instructions || ''}" placeholder="e.g., Take after meals">
+            </div>
+          </div>
+        </div>
+      `).join('');
+      
+      attachMedicationListeners();
+    }
+
+    function attachMedicationListeners() {
+      document.querySelectorAll('.med-name').forEach(input => {
+        input.addEventListener('input', (e) => {
+          medications[parseInt(e.target.dataset.index)].name = e.target.value;
+        });
+      });
+      
+      document.querySelectorAll('.med-dosage').forEach(input => {
+        input.addEventListener('input', (e) => {
+          medications[parseInt(e.target.dataset.index)].dosage = e.target.value;
+        });
+      });
+      
+      document.querySelectorAll('.med-frequency').forEach(input => {
+        input.addEventListener('input', (e) => {
+          medications[parseInt(e.target.dataset.index)].frequency = e.target.value;
+        });
+      });
+      
+      document.querySelectorAll('.med-duration').forEach(input => {
+        input.addEventListener('input', (e) => {
+          medications[parseInt(e.target.dataset.index)].duration = e.target.value;
+        });
+      });
+      
+      document.querySelectorAll('.med-instructions').forEach(input => {
+        input.addEventListener('input', (e) => {
+          medications[parseInt(e.target.dataset.index)].instructions = e.target.value;
+        });
+      });
+    }
+
+    window.removeMedication = removeMedication;
+
+    addMedicationBtn.addEventListener('click', addMedication);
+
+    generatePrescriptionBtn.addEventListener('click', () => {
+      const prescription = {
+        patient: {
+          name: document.getElementById('patientName').value,
+          age: parseInt(document.getElementById('patientAge').value),
+          gender: document.getElementById('patientGender').value,
+          weight: parseFloat(document.getElementById('patientWeight').value) || null,
+          height: parseFloat(document.getElementById('patientHeight').value) || null,
+          contact: document.getElementById('patientContact').value || null
+        },
+        vitals: {
+          bloodPressure: document.getElementById('bloodPressure').value || null,
+          temperature: parseFloat(document.getElementById('temperature').value) || null
+        },
+        chiefComplaint: document.getElementById('chiefComplaint').value,
+        medicalHistory: document.getElementById('medicalHistory').value,
+        allergies: document.getElementById('allergies').value,
+        diagnosis: document.getElementById('diagnosis').value,
+        medications: medications,
+        additionalInstructions: document.getElementById('additionalInstructions').value,
+        date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      };
+      
+      if (!prescription.patient.name || !prescription.patient.age || !prescription.patient.gender) {
+        alert('Please fill in all required patient information.');
+        return;
+      }
+      
+      if (!prescription.chiefComplaint) {
+        alert('Please enter chief complaint.');
+        return;
+      }
+      
+      if (!prescription.diagnosis) {
+        alert('Please enter diagnosis.');
+        return;
+      }
+      
+      if (medications.length === 0) {
+        alert('Please add at least one medication.');
+        return;
+      }
+      
+      for (let i = 0; i < medications.length; i++) {
+        const med = medications[i];
+        if (!med.name || !med.dosage || !med.frequency || !med.duration) {
+          alert(`Please complete all required fields for medication ${i + 1}.`);
+          return;
+        }
+      }
+      
+      displayPrescription(prescription);
+      prescriptionModal.classList.add('active');
+    });
+
+    function displayPrescription(prescription) {
+      const content = document.getElementById('prescriptionContent');
+      
+      content.innerHTML = `
+        <div class="prescription-header">
+          <h1>℞ MEDICAL PRESCRIPTION</h1>
+          <p>Date: ${prescription.date}</p>
+        </div>
+        
+        <div class="prescription-section">
+          <h3>Patient Information</h3>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Name:</span>
+              <span>${prescription.patient.name}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Age:</span>
+              <span>${prescription.patient.age} years</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Gender:</span>
+              <span>${prescription.patient.gender.charAt(0).toUpperCase() + prescription.patient.gender.slice(1)}</span>
+            </div>
+            ${prescription.patient.contact ? `
+              <div class="info-item">
+                <span class="info-label">Contact:</span>
+                <span>${prescription.patient.contact}</span>
+              </div>
+            ` : ''}
+            ${prescription.patient.weight ? `
+              <div class="info-item">
+                <span class="info-label">Weight:</span>
+                <span>${prescription.patient.weight} kg</span>
+              </div>
+            ` : ''}
+            ${prescription.patient.height ? `
+              <div class="info-item">
+                <span class="info-label">Height:</span>
+                <span>${prescription.patient.height} cm</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+        
+        ${prescription.vitals.bloodPressure || prescription.vitals.temperature ? `
+          <div class="prescription-section">
+            <h3>Vital Signs</h3>
+            <div class="info-grid">
+              ${prescription.vitals.bloodPressure ? `
+                <div class="info-item">
+                  <span class="info-label">Blood Pressure:</span>
+                  <span>${prescription.vitals.bloodPressure}</span>
+                </div>
+              ` : ''}
+              ${prescription.vitals.temperature ? `
+                <div class="info-item">
+                  <span class="info-label">Temperature:</span>
+                  <span>${prescription.vitals.temperature}°F</span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+        
+        <div class="prescription-section">
+          <h3>Chief Complaint</h3>
+          <p>${prescription.chiefComplaint}</p>
+        </div>
+        
+        ${prescription.allergies ? `
+          <div class="prescription-section">
+            <h3>⚠️ Allergies</h3>
+            <p style="color: var(--danger); font-weight: 600;">${prescription.allergies}</p>
+          </div>
+        ` : ''}
+        
+        ${prescription.medicalHistory ? `
+          <div class="prescription-section">
+            <h3>Medical History</h3>
+            <p>${prescription.medicalHistory}</p>
+          </div>
+        ` : ''}
+        
+        <div class="prescription-section">
+          <h3>Diagnosis</h3>
+          <p style="font-weight: 600; color: var(--primary);">${prescription.diagnosis}</p>
+        </div>
+        
+        <div class="prescription-section">
+          <h3>℞ Prescription</h3>
+          ${prescription.medications.map((med, index) => `
+            <div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid var(--primary);">
+              <strong>${index + 1}. ${med.name}</strong><br>
+              <div style="margin-top: 0.5rem; color: var(--text-secondary);">
+                <strong>Dosage:</strong> ${med.dosage} | 
+                <strong>Frequency:</strong> ${med.frequency} | 
+                <strong>Duration:</strong> ${med.duration}
+                ${med.instructions ? `<br><strong>Instructions:</strong> ${med.instructions}` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        ${prescription.additionalInstructions ? `
+          <div class="prescription-section">
+            <h3>Additional Instructions</h3>
+            <p>${prescription.additionalInstructions}</p>
+          </div>
+        ` : ''}
+        
+        <div class="prescription-footer">
+          <p style="margin-bottom: 1rem;"><em>This is a computer-generated prescription.</em></p>
+          <div class="signature-line">
+            <strong>Doctor's Signature</strong>
+          </div>
+        </div>
+      `;
+    }
+
+    closeModalBtn.addEventListener('click', () => {
+      prescriptionModal.classList.remove('active');
+    });
+
+    prescriptionModal.addEventListener('click', (e) => {
+      if (e.target === prescriptionModal) {
+        prescriptionModal.classList.remove('active');
+      }
+    });
+
+    printBtn.addEventListener('click', () => {
+      window.print();
+    });
+
+    downloadPdfBtn.addEventListener('click', () => {
+      alert('PDF download functionality requires a PDF library integration. For now, please use the Print button and save as PDF from your browser.');
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all form data?')) {
+        document.getElementById('patientName').value = '';
+        document.getElementById('patientAge').value = '';
+        document.getElementById('patientGender').value = '';
+        document.getElementById('patientWeight').value = '';
+        document.getElementById('patientHeight').value = '';
+        document.getElementById('patientContact').value = '';
+        document.getElementById('chiefComplaint').value = '';
+        document.getElementById('bloodPressure').value = '';
+        document.getElementById('temperature').value = '';
+        document.getElementById('medicalHistory').value = '';
+        document.getElementById('allergies').value = '';
+        document.getElementById('diagnosis').value = '';
+        document.getElementById('additionalInstructions').value = '';
+        
+        medications = [];
+        renderMedications();
+      }
+    });
+  </script>
+</body>
+</html>

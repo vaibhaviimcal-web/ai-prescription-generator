@@ -14,7 +14,7 @@ export default function PatientRegistration({ isOpen, onClose, onSuccess, editPa
   const [formData, setFormData] = useState({
     name: editPatient?.name || '',
     age: editPatient?.age?.toString() || '',
-    gender: editPatient?.gender || 'Male',
+    gender: (editPatient?.gender || 'Male') as 'Male' | 'Female' | 'Other',
     phone: editPatient?.phone || '',
     email: editPatient?.email || '',
     weight: editPatient?.weight?.toString() || '',
@@ -45,7 +45,7 @@ export default function PatientRegistration({ isOpen, onClose, onSuccess, editPa
       const patientData = {
         name: formData.name,
         age: parseInt(formData.age),
-        gender: formData.gender as 'Male' | 'Female' | 'Other',
+        gender: formData.gender,
         phone: formData.phone,
         email: formData.email,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
@@ -153,12 +153,12 @@ export default function PatientRegistration({ isOpen, onClose, onSuccess, editPa
               <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
               <select
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value as 'Male' | 'Female' | 'Other' })}
                 className="w-full px-4 py-2 rounded-lg border-2 border-gray-200 focus:border-medical-teal-500 outline-none"
               >
-                <option>Male</option>
-                <option>Female</option>
-                <option>Other</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
             </div>
 

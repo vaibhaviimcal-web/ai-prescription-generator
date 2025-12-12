@@ -9,8 +9,7 @@ import {
   query, 
   where, 
   orderBy,
-  Timestamp,
-  QueryConstraint
+  Timestamp
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { Patient, Prescription } from '../types/patient'

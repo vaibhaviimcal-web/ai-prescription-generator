@@ -1,15 +1,10 @@
 import { useState } from 'react'
-import { FileText, User, Pill, Calendar, Download, Send, Plus, X, AlertTriangle, Search } from 'lucide-react'
+import { FileText, User, Pill, Calendar, Download, Send, Plus, X, AlertTriangle, Search, History } from 'lucide-react'
 import { indianMedicines, diagnosisTemplates, dosageFrequency } from './data/medicines'
-
-interface PatientInfo {
-  name: string
-  age: string
-  gender: string
-  weight: string
-  allergies: string
-  phone: string
-}
+import { Patient } from './types/patient'
+import { prescriptionService } from './services/patientService'
+import PatientSearch from './components/PatientSearch'
+import PatientRegistration from './components/PatientRegistration'
 
 interface MedicineEntry {
   id: string
@@ -21,14 +16,8 @@ interface MedicineEntry {
 }
 
 function App() {
-  const [patientInfo, setPatientInfo] = useState<PatientInfo>({
-    name: '',
-    age: '',
-    gender: 'Male',
-    weight: '',
-    allergies: '',
-    phone: '',
-  })
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
+  const [showPatientModal, setShowPatientModal] = useState(false)
   
   const [diagnosis, setDiagnosis] = useState('')
   const [medicines, setMedicines] = useState<MedicineEntry[]>([])
@@ -77,6 +66,48 @@ function App() {
       })
     }
   }
+
+  const handleSelectPatient = (patient: Patient) => {
+    setSelectedPatient(patient)
+    // Auto-fill patient allergies warning if any
+    if (patient.allergies.length > 0) {
+      alert(`⚠️ ALLERGY ALERT: ${patient.name} is allergic to: ${patient.allergies.join(', ')}`)
+    }
+  }
+
+  const handleSavePrescription = async () => {
+    if (!selectedPatient) {
+      alert('Please select a patient first')
+      return
+    }
+
+    if (!diagnosis || medicines.length === 0) {
+      alert('Please add diagnosis and at least one medicine')
+      return
+    }
+
+    try {
+      await prescriptionService.createPrescription({
+        patientId: selectedPatient.id,
+        patientName: selectedPatient.name,
+        diagnosis,
+        medicines,
+        advice,
+        followUpDays: parseInt(followUpDays),
+      })
+      
+      alert('✅ Prescription saved successfully!')
+      
+      // Reset form
+      setDiagnosis('')
+      setMedicines([])
+      setAdvice('')
+      setFollowUpDays('7')
+    } catch (error) {
+      console.error('Error saving prescription:', error)
+      alert('Failed to save prescription. Please try again.')
+    }
+  }
   
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -96,6 +127,10 @@ function App() {
             <User className="w-5 h-5" />
             <span className="font-medium">Patients</span>
           </button>
+          <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-white/10 hover:text-white transition-all">
+            <History className="w-5 h-5" />
+            <span className="font-medium">History</span>
+          </button>
         </nav>
       </div>
       
@@ -106,12 +141,15 @@ function App() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-800">AI Prescription Generator</h1>
-              <p className="text-gray-600 mt-1">Create smart, compliant prescriptions in seconds</p>
+              <p className="text-gray-600 mt-1">Create smart, compliant prescriptions with Firebase</p>
             </div>
             <div className="flex items-center space-x-3">
-              <button className="px-6 py-3 bg-medical-navy-500 text-white rounded-xl hover:bg-medical-navy-600 transition-all flex items-center space-x-2 shadow-md">
+              <button 
+                onClick={handleSavePrescription}
+                className="px-6 py-3 bg-medical-navy-500 text-white rounded-xl hover:bg-medical-navy-600 transition-all flex items-center space-x-2 shadow-md"
+              >
                 <Download className="w-5 h-5" />
-                <span>Download PDF</span>
+                <span>Save & Download</span>
               </button>
               <button className="px-6 py-3 bg-medical-teal-500 text-white rounded-xl hover:bg-medical-teal-600 transition-all flex items-center space-x-2 shadow-md">
                 <Send className="w-5 h-5" />
@@ -123,6 +161,66 @@ function App() {
         
         {/* Form Content */}
         <div className="p-8 max-w-7xl mx-auto">
+          {/* Patient Search */}
+          <div className="mb-6">
+            <PatientSearch 
+              onSelectPatient={handleSelectPatient}
+              onNewPatient={() => setShowPatientModal(true)}
+            />
+          </div>
+
+          {/* Selected Patient Info */}
+          {selectedPatient && (
+            <div className="mb-6 bg-gradient-to-r from-medical-teal-50 to-medical-teal-100 border-2 border-medical-teal-300 rounded-2xl p-6">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-800">{selectedPatient.name}</h3>
+                  <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Age:</span>
+                      <span className="ml-2 font-semibold">{selectedPatient.age} yrs</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Gender:</span>
+                      <span className="ml-2 font-semibold">{selectedPatient.gender}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Phone:</span>
+                      <span className="ml-2 font-semibold">{selectedPatient.phone}</span>
+                    </div>
+                    {selectedPatient.bloodGroup && (
+                      <div>
+                        <span className="text-gray-600">Blood:</span>
+                        <span className="ml-2 font-semibold">{selectedPatient.bloodGroup}</span>
+                      </div>
+                    )}
+                  </div>
+                  {selectedPatient.allergies.length > 0 && (
+                    <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg flex items-center space-x-2">
+                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                      <span className="text-red-800 font-semibold">
+                        Allergies: {selectedPatient.allergies.join(', ')}
+                      </span>
+                    </div>
+                  )}
+                  {selectedPatient.chronicConditions.length > 0 && (
+                    <div className="mt-2 p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+                      <span className="text-yellow-800 font-semibold">
+                        Chronic Conditions: {selectedPatient.chronicConditions.join(', ')}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setSelectedPatient(null)}
+                  className="ml-4 text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Quick Templates */}
           <div className="mb-8 bg-white rounded-2xl shadow-md p-6">
             <h2 className="text-lg font-bold text-gray-800 mb-4">Quick Templates</h2>
@@ -140,68 +238,15 @@ function App() {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Patient Info */}
+            {/* Left Column - Diagnosis */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="bg-white rounded-2xl shadow-md p-6">
-                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                  <User className="w-5 h-5 mr-2 text-medical-teal-500" />
-                  Patient Information
-                </h2>
-                <div className="space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Patient Name *"
-                    value={patientInfo.name}
-                    onChange={(e) => setPatientInfo({...patientInfo, name: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-medical-teal-500 focus:ring-4 focus:ring-medical-teal-100 outline-none transition-all"
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input
-                      type="number"
-                      placeholder="Age *"
-                      value={patientInfo.age}
-                      onChange={(e) => setPatientInfo({...patientInfo, age: e.target.value})}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-medical-teal-500 focus:ring-4 focus:ring-medical-teal-100 outline-none transition-all"
-                    />
-                    <select
-                      value={patientInfo.gender}
-                      onChange={(e) => setPatientInfo({...patientInfo, gender: e.target.value})}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-medical-teal-500 focus:ring-4 focus:ring-medical-teal-100 outline-none transition-all"
-                    >
-                      <option>Male</option>
-                      <option>Female</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <input
-                    type="number"
-                    placeholder="Weight (kg)"
-                    value={patientInfo.weight}
-                    onChange={(e) => setPatientInfo({...patientInfo, weight: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-medical-teal-500 focus:ring-4 focus:ring-medical-teal-100 outline-none transition-all"
-                  />
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Known Allergies"
-                      value={patientInfo.allergies}
-                      onChange={(e) => setPatientInfo({...patientInfo, allergies: e.target.value})}
-                      className="w-full px-4 py-3 rounded-xl border-2 border-red-200 focus:border-red-500 focus:ring-4 focus:ring-red-100 outline-none transition-all"
-                    />
-                    {patientInfo.allergies && (
-                      <AlertTriangle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-red-500" />
-                    )}
-                  </div>
-                </div>
-              </div>
-              
               <div className="bg-white rounded-2xl shadow-md p-6">
                 <h2 className="text-lg font-bold text-gray-800 mb-4">Diagnosis</h2>
                 <textarea
                   placeholder="Enter diagnosis..."
                   value={diagnosis}
                   onChange={(e) => setDiagnosis(e.target.value)}
-                  rows={4}
+                  rows={6}
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-medical-teal-500 focus:ring-4 focus:ring-medical-teal-100 outline-none transition-all resize-none"
                 ></textarea>
               </div>
@@ -335,6 +380,16 @@ function App() {
           </div>
         </div>
       </div>
+
+      {/* Patient Registration Modal */}
+      <PatientRegistration
+        isOpen={showPatientModal}
+        onClose={() => setShowPatientModal(false)}
+        onSuccess={(patient) => {
+          setSelectedPatient(patient)
+          setShowPatientModal(false)
+        }}
+      />
     </div>
   )
 }

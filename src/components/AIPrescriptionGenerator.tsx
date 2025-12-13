@@ -30,8 +30,15 @@ export default function AIPrescriptionGenerator({ patient, onPrescriptionGenerat
     setError('')
 
     try {
-      // Fetch previous prescriptions to learn patterns
-      const previousPrescriptions = await prescriptionService.getPatientPrescriptions(patient.id)
+      // Try to fetch previous prescriptions to learn patterns
+      // If Firebase index doesn't exist, skip this step
+      let previousPrescriptions: any[] = []
+      try {
+        previousPrescriptions = await prescriptionService.getPatientPrescriptions(patient.id)
+      } catch (err) {
+        console.warn('Could not fetch previous prescriptions (Firebase index may be missing):', err)
+        // Continue without previous prescriptions
+      }
 
       // Generate AI prescription
       const aiPrescription = await aiService.generatePrescription({

@@ -17,13 +17,23 @@ import { Patient, Prescription } from '../types/patient'
 const PATIENTS_COLLECTION = 'patients'
 const PRESCRIPTIONS_COLLECTION = 'prescriptions'
 
+// Helper function to remove undefined values
+const cleanData = (data: any) => {
+  return Object.fromEntries(
+    Object.entries(data).filter(([_, value]) => value !== undefined && value !== '' && value !== null)
+  )
+}
+
 // Patient CRUD Operations
 export const patientService = {
   // Create new patient
   async createPatient(patientData: Omit<Patient, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
+      // Clean the data to remove undefined values
+      const cleanedData = cleanData(patientData)
+      
       const docRef = await addDoc(collection(db, PATIENTS_COLLECTION), {
-        ...patientData,
+        ...cleanedData,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       })
@@ -92,9 +102,12 @@ export const patientService = {
   // Update patient
   async updatePatient(patientId: string, patientData: Partial<Patient>): Promise<void> {
     try {
+      // Clean the data to remove undefined values
+      const cleanedData = cleanData(patientData)
+      
       const docRef = doc(db, PATIENTS_COLLECTION, patientId)
       await updateDoc(docRef, {
-        ...patientData,
+        ...cleanedData,
         updatedAt: Timestamp.now()
       })
     } catch (error) {
@@ -119,8 +132,11 @@ export const prescriptionService = {
   // Create new prescription
   async createPrescription(prescriptionData: Omit<Prescription, 'id' | 'createdAt'>): Promise<string> {
     try {
+      // Clean the data to remove undefined values
+      const cleanedData = cleanData(prescriptionData)
+      
       const docRef = await addDoc(collection(db, PRESCRIPTIONS_COLLECTION), {
-        ...prescriptionData,
+        ...cleanedData,
         createdAt: Timestamp.now()
       })
       return docRef.id

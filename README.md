@@ -362,3 +362,4 @@ For issues or questions:
 **Made with ❤️ for Indian Doctors**
 
 **Live Demo:** https://ai-prescription-generator-8l73-bxktwd4et.vercel.app
+"# Trigger rebuild with env vars" 

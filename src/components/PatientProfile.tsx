@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X, Edit, Trash2, Activity, FileText, AlertTriangle, User, Phone, Mail, Calendar, Weight, Ruler, Droplet } from 'lucide-react'
 import { Patient, Prescription } from '../types/patient'
-import { patientService, prescriptionService } from '../services/patientService'
+import { prescriptionService } from '../services/patientService'
 import { format } from 'date-fns'
 
 interface PatientProfileProps {

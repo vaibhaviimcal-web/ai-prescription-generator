@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, User, Pill, Calendar, Download, Send, Plus, X, AlertTriangle, Search, History, Users } from 'lucide-react'
+import { FileText, Pill, Calendar, Download, Send, Plus, X, AlertTriangle, Search, History, Users } from 'lucide-react'
 import { indianMedicines, diagnosisTemplates, dosageFrequency } from './data/medicines'
 import { Patient } from './types/patient'
 import { prescriptionService, patientService } from './services/patientService'

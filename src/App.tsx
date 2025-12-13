@@ -7,6 +7,7 @@ import PatientSearch from './components/PatientSearch'
 import PatientRegistration from './components/PatientRegistration'
 import PatientProfile from './components/PatientProfile'
 import PatientList from './components/PatientList'
+import AIPrescriptionGenerator from './components/AIPrescriptionGenerator'
 
 interface MedicineEntry {
   id: string
@@ -72,6 +73,28 @@ function App() {
         if (med) addMedicine(med.brandName)
       })
     }
+  }
+
+  const handleAIPrescriptionGenerated = (aiPrescription: any) => {
+    // Auto-fill form with AI-generated prescription
+    setDiagnosis(aiPrescription.diagnosis)
+    setAdvice(aiPrescription.advice)
+    setFollowUpDays(aiPrescription.followUpDays.toString())
+    
+    // Add AI-suggested medicines
+    const aiMedicines: MedicineEntry[] = aiPrescription.medicines.map((med: any) => ({
+      id: Date.now().toString() + Math.random(),
+      medicine: med.medicine,
+      dosage: med.dosage,
+      frequency: med.frequency,
+      duration: med.duration,
+      timing: med.timing
+    }))
+    
+    setMedicines(aiMedicines)
+    
+    // Show success message
+    alert('✨ AI Prescription generated successfully! Review and edit as needed.')
   }
 
   const handleSelectPatient = (patient: Patient) => {
@@ -190,7 +213,7 @@ function App() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800">AI Prescription Generator</h1>
-                  <p className="text-gray-600 mt-1">Create smart, compliant prescriptions with Firebase</p>
+                  <p className="text-gray-600 mt-1">Create smart, compliant prescriptions with AI</p>
                 </div>
                 <div className="flex items-center space-x-3">
                   <button 
@@ -277,6 +300,14 @@ function App() {
                   </div>
                 </div>
               )}
+
+              {/* AI Prescription Generator */}
+              <div className="mb-8">
+                <AIPrescriptionGenerator
+                  patient={selectedPatient}
+                  onPrescriptionGenerated={handleAIPrescriptionGenerated}
+                />
+              </div>
 
               {/* Quick Templates */}
               <div className="mb-8 bg-white rounded-2xl shadow-md p-6">
